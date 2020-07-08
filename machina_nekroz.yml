@@ -2,6 +2,7 @@
 deck:
   - name: "Nekroz of Brionac"
     count: 3
+    hopt: true
     tags:
       - "brio"
       - "unicore"
@@ -14,6 +15,7 @@ deck:
 
   - name: "Nekroz of Clausolas"
     count: 2
+    hopt: true
     tags:
       - "scope"
       - "cycle"
@@ -82,8 +84,7 @@ deck:
 
   - name: "Called by the Grave"
     count: 3
-    tags:
-      - "report"
+    report-as: "Called"
 
   - name: "Cyber Angel Benten"
     count: 1
@@ -95,8 +96,7 @@ deck:
   
   - name: "Hand Trap"
     count: 3
-    tags:
-      - "report"
+    report-as: "Hand Trap"
 ---
 resources:
   deskbot-3:

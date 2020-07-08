@@ -1,5 +1,9 @@
 {
     "cSpell.enableFiletypes": [
         "!yaml"
+    ],
+    "cSpell.words": [
+        "hopt",
+        "tracker"
     ]
 }
