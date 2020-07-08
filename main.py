@@ -74,7 +74,7 @@ class CardGroup():
     def __repr__(self):
         return ', '.join([repr(card) for card in self.cards])
 
-    def __eq__(self):
+    def __eq__(self, other):
         return (self.__class__ == other.__class__) and (self.cards == other.cards)
     
     def __hash__(self):
@@ -95,7 +95,7 @@ class CardGroup():
         return None
 
 class Hand(CardGroup):
-    def report(self):
+    def report_on_tracked_cards(self):
         report_data = {}
         for card in self.cards:
             if card.report_as:
@@ -194,7 +194,7 @@ class Game():
 
     def simulate(self, resources, rules):
         result, rule = self.match_rules(resources, rules)
-        report = self.hand.report()
+        report = self.hand.report_on_tracked_cards()
         return result, rule, report
 
     def reset(self):
