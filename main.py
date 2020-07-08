@@ -106,7 +106,7 @@ class Hand(CardGroup):
 
 class Deck(CardGroup):
     def __repr__(self):
-        return f'Deck containing {self.cards.length} cards.'
+        return f'Deck containing {len(self.cards)} cards.'
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -132,6 +132,7 @@ class Game():
                 deck.append(Card(card['name'], hopt, tags, report_as))
 
         deck = Deck(deck)
+        print(f'Deck constructed with {len(deck.cards)} cards.')
         deck.shuffle()
         hand = Hand(deck.draw(STARTING_HAND_SIZE))
         return cls(hand, deck)
@@ -206,7 +207,7 @@ class Game():
         self.hand = Hand(self.deck.draw(STARTING_HAND_SIZE))
         
 if __name__ == '__main__':
-    _, data = generate_statistics('machina_nekroz.yml')
+    game, data = generate_statistics('machina_nekroz.yml')
     for rule, report_counts in data.items():
         count = sum([count for _, count in report_counts.items()])
         print(rule, 100 * count / float(NUM_ITERATIONS))
