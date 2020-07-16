@@ -5,5 +5,8 @@
     "cSpell.words": [
         "hopt",
         "tracker"
-    ]
+    ],
+    "python.pythonPath": "/home/arshad/.virtualenvs/ygo/bin/python",
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black"
 }
