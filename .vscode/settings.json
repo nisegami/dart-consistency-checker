@@ -6,7 +6,6 @@
         "hopt",
         "tracker"
     ],
-    "python.pythonPath": "C:\\Users\\Arshad\\AppData\\Local\\Programs\\Python\\Python37\\python.exe",
     "python.linting.enabled": true,
     "python.formatting.provider": "black"
 }

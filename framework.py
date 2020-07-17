@@ -2,6 +2,7 @@ import random
 
 from functools import total_ordering
 
+
 @total_ordering
 class Card:
     def __init__(self, name):
@@ -28,7 +29,7 @@ class CardGroup:
         self.cards = cards
 
     def __repr__(self):
-        return ', '.join([repr(card) for card in self.cards])
+        return ", ".join([repr(card) for card in self.cards])
 
     def __eq__(self, other):
         return sorted(self.cards) == sorted(other.cards)
@@ -73,7 +74,7 @@ class Hand(CardGroup):
 
 class Deck(CardGroup):
     def __repr__(self):
-        return f'Deck containing {len(self.cards)} cards.'
+        return f"Deck containing {len(self.cards)} cards."
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -112,7 +113,9 @@ class Game:
 
     @classmethod
     def build_from_recipe(cls, deck_recipe):
-        game = cls(Hand([]), Deck([]), Grave([]), Field([]), Field([]), Banished([]), set())
+        game = cls(
+            Hand([]), Deck([]), Grave([]), Field([]), Field([]), Banished([]), set()
+        )
         for (card, count) in deck_recipe:
             for _ in range(count):
                 game.deck.add(card)
@@ -134,11 +137,19 @@ class Game:
 
     def __hash__(self):
         return hash(
-            (self.hand, self.deck, self.grave, self.monsters, self.backrow, self.banished, self.flags)
+            (
+                self.hand,
+                self.deck,
+                self.grave,
+                self.monsters,
+                self.backrow,
+                self.banished,
+                self.flags,
+            )
         )
 
     def __repr__(self):
-        return f'Hand: {self.hand}\nMonsters: {self.monsters}\nBackrow: {self.backrow}\nGrave: {self.grave}\nBanished: {self.banished}\nDeck: {self.deck}'
+        return f"Hand: {self.hand}\nMonsters: {self.monsters}\nBackrow: {self.backrow}\nGrave: {self.grave}\nBanished: {self.banished}\nDeck: {self.deck}"
 
     def copy(self):
         return self.__class__(
@@ -148,7 +159,7 @@ class Game:
             self.monsters.copy(),
             self.backrow.copy(),
             self.banished.copy(),
-            self.flags.copy()
+            self.flags.copy(),
         )
 
     def reset(self):
@@ -169,16 +180,16 @@ class Game:
         dest.add(card)
 
     def resource_available(self, resource):
-        return f'used:{resource}' not in self.flags
+        return f"used:{resource}" not in self.flags
 
     def use_resource(self, resource):
-        self.flags.add(f'used:{resource}')
+        self.flags.add(f"used:{resource}")
 
-    def hopt_available(self, card, tag='*'):
-        return f'hopt-{card.name}-{tag}' not in self.flags
+    def hopt_available(self, card, tag="*"):
+        return f"hopt-{card.name}-{tag}" not in self.flags
 
-    def use_hopt(self, card, tag='*'):
-        self.flags.add(f'hopt-{card.name}-{tag}')
+    def use_hopt(self, card, tag="*"):
+        self.flags.add(f"hopt-{card.name}-{tag}")
 
     def add_flag(self, flag):
         self.flags.add(flag)
@@ -195,7 +206,7 @@ class Manager:
         self.func_list = [
             getattr(self.__class__, func)
             for func in dir(self.__class__)
-            if callable(getattr(self.__class__, func)) and func.startswith('action')
+            if callable(getattr(self.__class__, func)) and func.startswith("action")
         ]
         self.initial_game = initial_game
 
@@ -227,12 +238,3 @@ class Manager:
             state_queue.append((game, next_action + 1))
 
         return max(end_games, key=lambda game: self.eval(game))
-
-    def iterate(self, count):
-        end_games = []
-        for i in range(count):
-            end_games.append(self.run())
-        return end_games
-
-    def generate_sankey(self, count):
-        pass
