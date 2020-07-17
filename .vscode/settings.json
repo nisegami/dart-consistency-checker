@@ -6,7 +6,7 @@
         "hopt",
         "tracker"
     ],
-    "python.pythonPath": "/home/arshad/.virtualenvs/ygo/bin/python",
+    "python.pythonPath": "C:\\Users\\Arshad\\AppData\\Local\\Programs\\Python\\Python37\\python.exe",
     "python.linting.enabled": true,
     "python.formatting.provider": "black"
 }

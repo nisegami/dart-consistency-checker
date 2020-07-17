@@ -127,6 +127,9 @@ class OrcustManager(Manager):
         if girsu_target and self.girsu in game.monsters and game.hopt_available(self.girsu, 1):
             game.use_hopt(self.girsu, 1)
             game.move(game.deck, game.grave, girsu_target)
+
+        if (not game.has_flag('going second card')) and any([card in game.hand for card in self.going_second_cards]):
+            game.add_flag('going second card')
         
         return game
 
@@ -533,19 +536,20 @@ def generate_sankey(end_games):
 
     fig.write_html(os.path.join('output', 'orcust.html'))
 
-def run_one():
-    return OrcustManager().run()
+def run_one(manager):
+    return manager.run()
 
 def run_in_parallel(n):
     import multiprocessing
+    manager = OrcustManager()
+    managers = [manager for _ in range(n)]
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-        future_results = [pool.apply_async(run_one) for i in range(n)]
-        return [f.get() for f in future_results]
+        return pool.map(run_one, managers)
 
 if __name__ == '__main__':
     import time
     start = time.time()
-    end_games = run_in_parallel(500)
+    end_games = run_in_parallel(5000)
     generate_sankey(end_games)
     duration = time.time() - start
     print(duration)
