@@ -5,8 +5,9 @@ from functools import total_ordering
 
 @total_ordering
 class Card:
-    def __init__(self, name):
+    def __init__(self, name, values):
         self.name = name
+        self.values = values
 
     def __hash__(self):
         return hash(self.name)
@@ -211,7 +212,12 @@ class Manager:
         self.initial_game = initial_game
 
     def eval(self, game):
-        return 0
+        return (
+            sum([card.values[0] for card in game.hand])
+            + sum([card.values[1] for card in game.monsters])
+            + sum([card.values[1] for card in game.backrow])
+            + sum([card.values[2] for card in game.grave])
+        )
 
     def postprocess(self, game):
         return game

@@ -4,39 +4,39 @@ from framework import Manager, Card, Game
 
 
 class OrcustManager(Manager):
-    redeployment = Card("Machina Redeployment")
-    knightmare = Card("Orcust Knightmare")
-    girsu = Card("Orcust Mekk-Knight Girsu")
-    cymbal = Card("Orcust Cymbal Skeleton")
-    wand = Card("World Legacy - World Wand")
-    o_return = Card("Orcustrated Return")
-    recycler = Card("Scrap Recycler")
-    golem = Card("Scrap Golem")
-    jet = Card("Jet Synchron")
-    gizmek = Card("Gizmek Orochi, the Serpentron Sky Slasher")
-    irradiator = Card("Machina Irradiator")
-    megaform = Card("Machina Megaform")
-    metalcruncher = Card("Machina Metalcruncher")
-    citadel = Card("Machina Citadel")
-    foolish = Card("Foolish Burial")
-    babel = Card("Orcustrated Babel")
-    succession = Card("World Legacy Succession")
-    crescendo = Card("Orcust Crescendo")
-    nibiru = Card("Nibiru, the Primal Being")
-    imperm = Card("Infinite Impermanence")
-    ash = Card("Ash Blossom & Joyous Spring")
-    drnm = Card("Dark Ruler No More")
-    called = Card("Called by the Grave")
-    buster = Card("Buster Whelp of the Destruction Swordsman")
+    redeployment = Card("Machina Redeployment", (0, 0, 0))
+    knightmare = Card("Orcust Knightmare", (0, 5, 10))
+    girsu = Card("Orcust Mekk-Knight Girsu", (0, 5, 5))
+    cymbal = Card("Orcust Cymbal Skeleton", (0, 5, 10))
+    wand = Card("World Legacy - World Wand", (0, 5, 10))
+    o_return = Card("Orcustrated Return", (5, 0, 0))
+    recycler = Card("Scrap Recycler", (1, 1, 1))
+    golem = Card("Scrap Golem", (0, 1, 0))
+    jet = Card("Jet Synchron", (0, 1, 10))
+    gizmek = Card("Gizmek Orochi, the Serpentron Sky Slasher", (10, 5, 10))
+    irradiator = Card("Machina Irradiator", (0, 1, 0))
+    megaform = Card("Machina Megaform", (0, 1, 0))
+    metalcruncher = Card("Machina Metalcruncher", (0, 1, 0))
+    citadel = Card("Machina Citadel", (0, 10, 5))
+    foolish = Card("Foolish Burial", (10, 0, 0))
+    babel = Card("Orcustrated Babel", (0, 10, 5))
+    succession = Card("World Legacy Succession", (5, 0, 0))
+    crescendo = Card("Orcust Crescendo", (0, 10, 5))
+    nibiru = Card("Nibiru, the Primal Being", (10, 0, 0))
+    imperm = Card("Infinite Impermanence", (10, 10, 0))
+    ash = Card("Ash Blossom & Joyous Spring", (10, 0, 0))
+    drnm = Card("Dark Ruler No More", (5, 0, 0))
+    called = Card("Called by the Grave", (10, 10, 0))
+    buster = Card("Buster Whelp of the Destruction Swordsman", (0, 10, 0))
 
-    galatea = Card("Galatea, the Orcust Automaton")
-    wyvern = Card("Scrap Wyvern")
-    lib = Card("Lib the World Key Blademaster")
-    bow = Card("Apollousa, Bow of the Goddess")
-    ding = Card("Dingirsu, the Orcust of the Evening Star")
-    ip = Card("I:P Masquerena")
-    linkuriboh = Card("Linkuriboh")
-    carrier = Card("Union Carrier")
+    galatea = Card("Galatea, the Orcust Automaton", (0, 10, 5))
+    wyvern = Card("Scrap Wyvern", (0, 10, 0))
+    lib = Card("Lib the World Key Blademaster", (0, 10, 0))
+    bow = Card("Apollousa, Bow of the Goddess", (0, 10, 0))
+    ding = Card("Dingirsu, the Orcust of the Evening Star", (0, 10, 10))
+    ip = Card("I:P Masquerena", (0, 10, 0))
+    linkuriboh = Card("Linkuriboh", (0, 0, 0))
+    carrier = Card("Union Carrier", (0, 5, 0))
 
     deck_recipe = (
         (knightmare, 3),
@@ -100,16 +100,6 @@ class OrcustManager(Manager):
 
     def __init__(self):
         super().__init__(self.initial_game)
-
-    def eval(self, game):
-        val = (
-            2 * len(game.monsters)
-            + 2 * len(game.backrow)
-            + sum([game.hand.cards.count(card) for card in self.hand_traps])
-        )
-        if self.ding in game.monsters:
-            val += 2
-        return val
 
     def postprocess(self, game):
         if not game.hopt_available(self.jet) and self.jet in game.grave:
