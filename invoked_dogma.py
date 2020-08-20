@@ -1,5 +1,4 @@
-import random
-
+from typing import List, Optional, Tuple
 from framework import Disruption, Manager, Card, Game
 
 
@@ -52,12 +51,11 @@ class InvokedDogmaManager(Manager):
         (called, 3),
         (droplet, 1),
         (ogre, 3),
-        # (pinpoint, 2)
     )
 
-    hand_traps = [ash, ogre, veiler, imperm]
-    going_second_cards = [ash, ogre, veiler, imperm, droplet, nibiru]
-    backrow = [droplet, called, imperm, punishment]
+    hand_traps = (ash, ogre, veiler, imperm)
+    going_second_cards = (ash, ogre, veiler, imperm, droplet, nibiru)
+    backrow = (droplet, called, imperm, punishment)
 
     initial_game = Game.build_from_recipe(deck_recipe)
 
@@ -65,7 +63,7 @@ class InvokedDogmaManager(Manager):
         super().__init__(self.initial_game)
 
     @classmethod
-    def generate_report(cls, end_games):
+    def generate_report(_, end_games: List[Game]) -> str:
         n = len(end_games)
         parts = [
             f"% of games with Winda: {len([game for game in end_games if game.has_flag('winda')])/float(n/100)}",
@@ -77,7 +75,9 @@ class InvokedDogmaManager(Manager):
         return "\n".join(parts)
 
     @classmethod
-    def generate_sankey_data(cls, end_games):
+    def generate_sankey_data(
+        cls, end_games: List[Game]
+    ) -> Tuple[List[str], List[str], List[int], List[int], List[int]]:
         results = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
         for game in end_games:
@@ -217,7 +217,7 @@ class InvokedDogmaManager(Manager):
 
         return game
 
-    def select_ecclesia_search_target(self, game: Game):
+    def select_ecclesia_search_target(self, game: Game) -> Optional[Card]:
         if not game.hopt_available(self.titaniklad):
             # search during end phase
             if self.fleur in game.hand:
@@ -231,7 +231,7 @@ class InvokedDogmaManager(Manager):
             else:
                 return game.deck.get_any([self.maximus, self.punishment, self.fleur])
 
-    def select_titaniklad_search_target(self, game: Game):
+    def select_titaniklad_search_target(self, game: Game) -> Optional[Card]:
         if self.ecclesia in game.deck and game.hopt_available(self.ecclesia, "search"):
             return self.ecclesia
         else:
@@ -239,12 +239,12 @@ class InvokedDogmaManager(Manager):
             options = [card for card in options if card not in game.hand] + options
             return game.deck.get_any(options)
 
-    def select_nadir_search_target(self, game: Game):
+    def select_nadir_search_target(self, game: Game) -> Optional[Card]:
         options = [self.ecclesia, self.maximus, self.fleur]
         options = [card for card in options if card not in game.hand] + options
         return game.deck.get_any(options)
 
-    def select_nadir_send_target(self, game: Game):
+    def select_nadir_send_target(self, game: Game) -> Optional[Card]:
         if self.schism in game.deck and (
             self.maximus in game.deck or self.maximus in game.hand
         ):
@@ -256,7 +256,7 @@ class InvokedDogmaManager(Manager):
         else:
             return self.omega
 
-    def select_schism_discard(self, game: Game):
+    def select_schism_discard(self, game: Game) -> Optional[Card]:
         if self.servant in game.grave and (
             self.maximus in game.deck or self.maximus in game.hand
         ):
@@ -281,7 +281,7 @@ class InvokedDogmaManager(Manager):
             options = front + back
             return game.hand.get_any(options)
 
-    def select_maximus_banish(self, game: Game):
+    def select_maximus_banish(self, game: Game) -> Optional[Card]:
         return game.grave.get_any(
             [
                 self.almiraj,
@@ -293,24 +293,24 @@ class InvokedDogmaManager(Manager):
             ]
         )
 
-    def select_maximus_sends(self, game: Game):
+    def select_maximus_sends(self, game: Game) -> Tuple[Optional[Card], Optional[Card]]:
         if self.schism in game.grave:
             return (self.titaniklad, self.construct)
         else:
             return (self.titaniklad, self.apkalone)
 
-    def action_activate_pinpoint(self, game: Game):
+    def action_activate_pinpoint(self, game: Game) -> Optional[Game]:
         if self.pinpoint not in game.backrow and self.pinpoint in game.hand:
             game.move(game.hand, game.backrow, self.pinpoint)
             return game
 
-    def action_use_upstart(self, game: Game):
+    def action_use_upstart(self, game: Game) -> Optional[Game]:
         if self.upstart in game.hand and len(game.deck) > 1:
             game.move(game.hand, game.grave, self.upstart)
             game.draw()
             return game
 
-    def action_use_desires(self, game: Game):
+    def action_use_desires(self, game: Game) -> Optional[Game]:
         if (
             self.desires in game.hand
             and len(game.deck) > 1
@@ -324,7 +324,7 @@ class InvokedDogmaManager(Manager):
             game.draw()
             return game
 
-    def action_use_terraforming(self, game: Game):
+    def action_use_terraforming(self, game: Game) -> Optional[Game]:
         if (
             self.terraforming in game.hand
             and self.meltdown in game.deck
@@ -335,7 +335,7 @@ class InvokedDogmaManager(Manager):
             game.use_hopt(self.terraforming)
             return game
 
-    def action_use_meltdown(self, game: Game):
+    def action_use_meltdown(self, game: Game) -> Optional[Game]:
         if self.meltdown in game.hand and game.hopt_available(self.meltdown):
             game.move(game.hand, game.backrow, self.meltdown)
             game.use_hopt(self.meltdown)
@@ -343,7 +343,7 @@ class InvokedDogmaManager(Manager):
                 game.move(game.deck, game.hand, self.aleister)
             return game
 
-    def action_summon_aleister(self, game: Game):
+    def action_summon_aleister(self, game: Game) -> Optional[Game]:
         if self.aleister in game.hand and game.resource_available("normal summon"):
             game.move(game.hand, game.monsters, self.aleister)
             game.use_resource("normal summon")
@@ -352,19 +352,19 @@ class InvokedDogmaManager(Manager):
                 game.use_hopt(self.aleister)
             return game
 
-    def action_summon_almiraj(self, game: Game):
+    def action_summon_almiraj(self, game: Game) -> Optional[Game]:
         if self.aleister in game.monsters and game.resource_available("extra deck"):
             game.move(game.monsters, game.grave, self.aleister)
             game.monsters.add(self.almiraj)
             return game
 
-    def action_summon_gardna(self, game: Game):
+    def action_summon_gardna(self, game: Game) -> Optional[Game]:
         if self.almiraj in game.monsters and game.resource_available("extra deck"):
             game.move(game.monsters, game.grave, self.almiraj)
             game.monsters.add(self.gardna)
             return game
 
-    def action_summon_mechaba(self, game: Game):
+    def action_summon_mechaba(self, game: Game) -> Optional[Game]:
         if self.invocation in game.hand and game.resource_available("extra deck"):
             if self.gardna in game.grave:
                 game.move(game.grave, game.banished, self.gardna)
@@ -395,14 +395,14 @@ class InvokedDogmaManager(Manager):
             game.monsters.add(self.mechaba)
             return game
 
-    def action_recycle_aleister(self, game: Game):
+    def action_recycle_aleister(self, game: Game) -> Optional[Game]:
         if self.invocation in game.grave and self.aleister in game.banished:
             game.move(game.grave, game.deck, self.invocation)
             game.move(game.banished, game.hand, self.aleister)
             game.deck.shuffle()
             return game
 
-    def action_use_nadir(self, game: Game):
+    def action_use_nadir(self, game: Game) -> Optional[Game]:
         if self.servant in game.hand and game.hopt_available(self.servant):
             search_target = self.select_nadir_search_target(game)
             if not search_target:
@@ -417,7 +417,7 @@ class InvokedDogmaManager(Manager):
             game.use_resource("extra deck")
             return game
 
-    def action_summon_ecclesia(self, game: Game):
+    def action_summon_ecclesia(self, game: Game) -> Optional[Game]:
         if self.ecclesia in game.hand:
             if any(
                 [monster.card_type == "ED" for monster in game.monsters]
@@ -440,7 +440,7 @@ class InvokedDogmaManager(Manager):
                 game.use_resource("extra deck")
             return game
 
-    def action_summon_maximus(self, game: Game):
+    def action_summon_maximus(self, game: Game) -> Optional[Game]:
         if self.maximus in game.hand and game.hopt_available(self.maximus):
             banish = self.select_maximus_banish(game)
             if not banish:
