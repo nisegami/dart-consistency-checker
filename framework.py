@@ -2,28 +2,31 @@ import random
 
 from functools import total_ordering
 from dataclasses import dataclass
+from typing import Iterator, List, Optional, Set, Tuple
+
+from __future__ import annotations
 
 
+@dataclass(order=False)
 @total_ordering
 class Card:
-    def __init__(self, name, discard_weight, card_type):
-        self.name = name
-        self.discard_weight = discard_weight
-        self.card_type = card_type
+    name: str
+    discard_weight: int
+    card_type: str
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.name)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.name == other.name
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.name.__lt__(other.name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def copy(self):
+    def copy(self) -> Card:
         return self
 
 
@@ -32,51 +35,53 @@ class Disruption:
     name: str
     point_value: int
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
 
+@dataclass
 class CardGroup:
-    def __init__(self, cards):
-        self.cards = cards
+    cards: List[Card]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ", ".join([repr(card) for card in self.cards])
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return sorted(self.cards) == sorted(other.cards)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(sorted(self.cards))
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         return item in self.cards
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cards)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return self.cards.__iter__()
 
-    def random(self, exclude=[]):
+    def random(self, exclude: List[Card] = []) -> Optional[Card]:
+        if not self.cards:
+            return None
         selected = random.choice(self.cards)
         while selected in exclude:
             selected = random.choice(self.cards)
         return selected
 
-    def get_any(self, card_list):
+    def get_any(self, card_list: List[Card]) -> Optional[Card]:
         for card in card_list:
             for item in self.cards:
                 if item == card:
                     return item
 
-    def remove(self, card):
-        return self.cards.remove(card)
+    def remove(self, card) -> None:
+        self.cards.remove(card)
 
-    def add(self, card):
-        return self.cards.append(card)
+    def add(self, card) -> None:
+        self.cards.append(card)
 
-    def copy(self):
+    def copy(self) -> CardGroup:
         return self.__class__([card.copy() for card in self.cards])
 
 
@@ -85,19 +90,19 @@ class Hand(CardGroup):
 
 
 class Deck(CardGroup):
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Deck containing {len(self.cards)} cards."
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         random.shuffle(self.cards)
 
-    def draw(self):
+    def draw(self) -> Card:
         return self.cards.pop(0)
 
-    def add_to_top(self, card):
+    def add_to_top(self, card: Card) -> None:
         self.cards.insert(0, card)
 
-    def add_to_bottom(self, card):
+    def add_to_bottom(self, card: Card) -> None:
         self.cards.append(card)
 
 
@@ -113,21 +118,19 @@ class Banished(CardGroup):
     pass
 
 
+@dataclass
 class Game:
-    def __init__(
-        self, hand, deck, grave, monsters, backrow, banished, flags, disruptions
-    ):
-        self.hand = hand
-        self.deck = deck
-        self.grave = grave
-        self.monsters = monsters
-        self.backrow = backrow
-        self.banished = banished
-        self.flags = flags
-        self.disruptions = disruptions
+    hand: Hand
+    deck: Deck
+    grave: Grave
+    monsters: Field
+    backrow: Field
+    banished: Banished
+    flags: Set[str]
+    disruptions: List[Disruption]
 
     @classmethod
-    def build_from_recipe(cls, deck_recipe):
+    def build_from_recipe(cls, deck_recipe: Tuple[Tuple[Card, int]]) -> Game:
         game = cls(
             Hand([]), Deck([]), Grave([]), Field([]), Field([]), Banished([]), set(), []
         )
@@ -139,7 +142,7 @@ class Game:
             game.draw()
         return game
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             (self.hand == other.hand)
             and (self.deck == other.deck)
@@ -151,7 +154,7 @@ class Game:
             and (self.disruptions == other.disruptions)
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
                 self.hand,
@@ -165,10 +168,18 @@ class Game:
             )
         )
 
-    def __repr__(self):
-        return f"Hand: {self.hand}\nMonsters: {self.monsters}\nBackrow: {self.backrow}\nGrave: {self.grave}\nBanished: {self.banished}\nDeck: {self.deck}"
+    def __repr__(self) -> str:
+        parts = [
+            f"Hand: {self.hand}",
+            f"Monsters: {self.monsters}",
+            f"Backrow: {self.backrow}",
+            f"Grave: {self.grave}",
+            f"Banished: {self.banished}",
+            f"Deck: {self.deck}",
+        ]
+        return "\n".join(parts)
 
-    def copy(self):
+    def copy(self) -> Game:
         return self.__class__(
             self.hand.copy(),
             self.deck.copy(),
@@ -180,7 +191,7 @@ class Game:
             self.disruptions.copy(),
         )
 
-    def reset(self):
+    def reset(self) -> None:
         while self.hand:
             self.deck.add(self.hand.cards.pop())
         while self.monsters:
@@ -193,44 +204,44 @@ class Game:
         for _ in range(5):
             self.draw()
 
-    def move(self, source, dest, card):
+    def move(self, source: CardGroup, dest: CardGroup, card: Card) -> None:
         source.remove(card)
         dest.add(card)
 
-    def resource_available(self, resource):
+    def resource_available(self, resource: str) -> bool:
         return f"used:{resource}" not in self.flags
 
-    def use_resource(self, resource):
+    def use_resource(self, resource: str) -> None:
         self.flags.add(f"used:{resource}")
 
-    def hopt_available(self, card, tag="*"):
+    def hopt_available(self, card: Card, tag: Optional[str] = "*") -> bool:
         if not tag:
             return not any(
                 [flag.startswith(f"hopt-{card.name}") for flag in self.flags]
             )
         return f"hopt-{card.name}-{tag}" not in self.flags
 
-    def use_hopt(self, card, tag="*"):
+    def use_hopt(self, card: Card, tag: str = "*") -> None:
         self.flags.add(f"hopt-{card.name}-{tag}")
 
-    def add_flag(self, flag):
+    def add_flag(self, flag: str) -> None:
         self.flags.add(flag)
 
-    def has_flag(self, flag):
+    def has_flag(self, flag: str) -> bool:
         return flag in self.flags
 
-    def draw(self):
+    def draw(self) -> None:
         self.hand.add(self.deck.cards.pop(0))
 
-    def disruption_report(self):
+    def disruption_report(self) -> str:
         return f"{self.value()} Points: {', '.join([repr(disruption) for disruption in self.disruptions])}"
 
-    def value(self):
+    def value(self) -> int:
         return sum([disruption.point_value for disruption in self.disruptions])
 
 
 class Manager:
-    def __init__(self, initial_game):
+    def __init__(self, initial_game: Game) -> None:
         self.func_list = [
             getattr(self.__class__, func)
             for func in dir(self.__class__)
@@ -238,17 +249,17 @@ class Manager:
         ]
         self.initial_game = initial_game
 
-    def postprocess(self, game):
+    def postprocess(self, game: Game) -> Game:
         return game
 
-    def endphase(self, game):
+    def endphase(self, game: Game) -> Game:
         return game
 
     @classmethod
-    def endphase(cls, end_games):
+    def endphase(cls, end_games: List[Game]) -> str:
         return ""
 
-    def run(self):
+    def run(self) -> Game:
         start = self.initial_game.copy()
         start.reset()
         state_queue = [(start, 0)]
