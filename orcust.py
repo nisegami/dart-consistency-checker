@@ -4,39 +4,39 @@ from framework import Manager, Card, Game
 
 
 class OrcustManager(Manager):
-    redeployment = Card("Machina Redeployment", (0, 0, 0))
-    knightmare = Card("Orcust Knightmare", (0, 5, 10))
-    girsu = Card("Orcust Mekk-Knight Girsu", (0, 5, 5))
-    cymbal = Card("Orcust Cymbal Skeleton", (0, 5, 10))
-    wand = Card("World Legacy - World Wand", (0, 5, 10))
-    o_return = Card("Orcustrated Return", (5, 0, 0))
-    recycler = Card("Scrap Recycler", (1, 1, 1))
-    golem = Card("Scrap Golem", (0, 1, 0))
-    jet = Card("Jet Synchron", (0, 1, 10))
-    gizmek = Card("Gizmek Orochi, the Serpentron Sky Slasher", (10, 5, 10))
-    irradiator = Card("Machina Irradiator", (0, 1, 0))
-    megaform = Card("Machina Megaform", (0, 1, 0))
-    metalcruncher = Card("Machina Metalcruncher", (0, 1, 0))
-    citadel = Card("Machina Citadel", (0, 10, 5))
-    foolish = Card("Foolish Burial", (10, 0, 0))
-    babel = Card("Orcustrated Babel", (0, 10, 5))
-    succession = Card("World Legacy Succession", (5, 0, 0))
-    crescendo = Card("Orcust Crescendo", (0, 10, 5))
-    nibiru = Card("Nibiru, the Primal Being", (10, 0, 0))
-    imperm = Card("Infinite Impermanence", (10, 10, 0))
-    ash = Card("Ash Blossom & Joyous Spring", (10, 0, 0))
-    drnm = Card("Dark Ruler No More", (5, 0, 0))
-    called = Card("Called by the Grave", (10, 10, 0))
-    buster = Card("Buster Whelp of the Destruction Swordsman", (0, 10, 0))
+    redeployment = Card("Machina Redeployment", 0, "S")
+    knightmare = Card("Orcust Knightmare", 11, "M")
+    girsu = Card("Orcust Mekk-Knight Girsu", 5, "M")
+    cymbal = Card("Orcust Cymbal Skeleton", 8, "M")
+    wand = Card("World Legacy - World Wand", 9, "M")
+    o_return = Card("Orcustrated Return", 5, "S")
+    recycler = Card("Scrap Recycler", 0, "M")
+    golem = Card("Scrap Golem", 10, "M")
+    jet = Card("Jet Synchron", 10, "M")
+    gizmek = Card("Gizmek Orochi, the Serpentron Sky Slasher", 12, "M")
+    irradiator = Card("Machina Irradiator", 5, "M")
+    megaform = Card("Machina Megaform", 5, "M")
+    metalcruncher = Card("Machina Metalcruncher", 5, "M")
+    citadel = Card("Machina Citadel", 8, "M")
+    foolish = Card("Foolish Burial", 0, "S")
+    babel = Card("Orcustrated Babel", 0, "S")
+    succession = Card("World Legacy Succession", 0, "S")
+    crescendo = Card("Orcust Crescendo", 0, "T")
+    nibiru = Card("Nibiru, the Primal Being", 0, "M")
+    imperm = Card("Infinite Impermanence", 0, "T")
+    ash = Card("Ash Blossom & Joyous Spring", 0, "M")
+    drnm = Card("Dark Ruler No More", 0, "S")
+    called = Card("Called by the Grave", 0, "S")
+    buster = Card("Buster Whelp of the Destruction Swordsman", 5, "M")
 
-    galatea = Card("Galatea, the Orcust Automaton", (0, 10, 5))
-    wyvern = Card("Scrap Wyvern", (0, 10, 0))
-    lib = Card("Lib the World Key Blademaster", (0, 10, 0))
-    bow = Card("Apollousa, Bow of the Goddess", (0, 10, 0))
-    ding = Card("Dingirsu, the Orcust of the Evening Star", (0, 10, 10))
-    ip = Card("I:P Masquerena", (0, 10, 0))
-    linkuriboh = Card("Linkuriboh", (0, 0, 0))
-    carrier = Card("Union Carrier", (0, 5, 0))
+    galatea = Card("Galatea, the Orcust Automaton", 0, "ED")
+    wyvern = Card("Scrap Wyvern", 0, "ED")
+    lib = Card("Lib the World Key Blademaster", 0, "ED")
+    bow = Card("Apollousa, Bow of the Goddess", 0, "ED")
+    ding = Card("Dingirsu, the Orcust of the Evening Star", 0, "ED")
+    ip = Card("I:P Masquerena", 0, "ED")
+    linkuriboh = Card("Linkuriboh", 0, "ED")
+    carrier = Card("Union Carrier", 0, "ED")
 
     deck_recipe = (
         (knightmare, 3),
@@ -100,6 +100,55 @@ class OrcustManager(Manager):
 
     def __init__(self):
         super().__init__(self.initial_game)
+
+    @classmethod
+    def generate_sankey_data(cls, end_games):
+        gs = [[0, 0, 0], [0, 0, 0]]
+        combo = [[0, 0, 0], [0, 0, 0]]
+
+        for game in end_games:
+            if game.has_flag("going second card"):
+                outer_index_gs = 0
+            else:
+                outer_index_gs = 1
+
+            if game.has_flag("recycler"):
+                inner_index_gs = 0
+                outer_index_combo = 0
+            elif game.has_flag("girsu"):
+                inner_index_gs = 1
+                outer_index_combo = 1
+            else:
+                inner_index_gs = 2
+                gs[outer_index_gs][inner_index_gs] += 1
+                continue
+
+            if game.has_flag("full combo"):
+                inner_index_combo = 0
+            elif game.has_flag("basic combo"):
+                inner_index_combo = 1
+            else:
+                inner_index_combo = 2
+
+            gs[outer_index_gs][inner_index_gs] += 1
+            combo[outer_index_combo][inner_index_combo] += 1
+
+        label = [
+            "Going Second Card Drawn",  # 0
+            "No Going Second Card Drawn",  # 1
+            "Scrap Used",  # 2
+            "Girsu Used",  # 3
+            "Full Combo",  # 4
+            "Basic Combo",  # 5
+            "Brick",  # 6
+        ]
+        color = ["green", "blue", "brown", "black", "green", "blue", "red"]
+
+        source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]
+        target = [2, 3, 6, 2, 3, 6, 4, 5, 6, 4, 5, 6]
+        value = gs[0] + gs[1] + combo[0] + combo[1]
+
+        return label, color, source, target, value
 
     def postprocess(self, game):
         if not game.hopt_available(self.jet) and self.jet in game.grave:

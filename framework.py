@@ -1,13 +1,15 @@
 import random
 
 from functools import total_ordering
+from dataclasses import dataclass
 
 
 @total_ordering
 class Card:
-    def __init__(self, name, values):
+    def __init__(self, name, discard_weight, card_type):
         self.name = name
-        self.values = values
+        self.discard_weight = discard_weight
+        self.card_type = card_type
 
     def __hash__(self):
         return hash(self.name)
@@ -23,6 +25,15 @@ class Card:
 
     def copy(self):
         return self
+
+
+@dataclass
+class Disruption:
+    name: str
+    point_value: int
+
+    def __repr__(self):
+        return self.name
 
 
 class CardGroup:
@@ -103,7 +114,9 @@ class Banished(CardGroup):
 
 
 class Game:
-    def __init__(self, hand, deck, grave, monsters, backrow, banished, flags):
+    def __init__(
+        self, hand, deck, grave, monsters, backrow, banished, flags, disruptions
+    ):
         self.hand = hand
         self.deck = deck
         self.grave = grave
@@ -111,11 +124,12 @@ class Game:
         self.backrow = backrow
         self.banished = banished
         self.flags = flags
+        self.disruptions = disruptions
 
     @classmethod
     def build_from_recipe(cls, deck_recipe):
         game = cls(
-            Hand([]), Deck([]), Grave([]), Field([]), Field([]), Banished([]), set()
+            Hand([]), Deck([]), Grave([]), Field([]), Field([]), Banished([]), set(), []
         )
         for (card, count) in deck_recipe:
             for _ in range(count):
@@ -134,6 +148,7 @@ class Game:
             and (self.backrow == other.backrow)
             and (self.banished == other.banished)
             and (self.flags == other.flags)
+            and (self.disruptions == other.disruptions)
         )
 
     def __hash__(self):
@@ -146,6 +161,7 @@ class Game:
                 self.backrow,
                 self.banished,
                 self.flags,
+                self.disruptions,
             )
         )
 
@@ -161,6 +177,7 @@ class Game:
             self.backrow.copy(),
             self.banished.copy(),
             self.flags.copy(),
+            self.disruptions.copy(),
         )
 
     def reset(self):
@@ -187,6 +204,10 @@ class Game:
         self.flags.add(f"used:{resource}")
 
     def hopt_available(self, card, tag="*"):
+        if not tag:
+            return not any(
+                [flag.startswith(f"hopt-{card.name}") for flag in self.flags]
+            )
         return f"hopt-{card.name}-{tag}" not in self.flags
 
     def use_hopt(self, card, tag="*"):
@@ -201,6 +222,12 @@ class Game:
     def draw(self):
         self.hand.add(self.deck.cards.pop(0))
 
+    def disruption_report(self):
+        return f"{self.value()} Points: {', '.join([repr(disruption) for disruption in self.disruptions])}"
+
+    def value(self):
+        return sum([disruption.point_value for disruption in self.disruptions])
+
 
 class Manager:
     def __init__(self, initial_game):
@@ -211,16 +238,15 @@ class Manager:
         ]
         self.initial_game = initial_game
 
-    def eval(self, game):
-        return (
-            sum([card.values[0] for card in game.hand])
-            + sum([card.values[1] for card in game.monsters])
-            + sum([card.values[1] for card in game.backrow])
-            + sum([card.values[2] for card in game.grave])
-        )
-
     def postprocess(self, game):
         return game
+
+    def endphase(self, game):
+        return game
+
+    @classmethod
+    def endphase(cls, end_games):
+        return ""
 
     def run(self):
         start = self.initial_game.copy()
@@ -232,7 +258,7 @@ class Manager:
             game, next_action = state_queue.pop(0)
 
             if next_action == len(self.func_list):
-                end_games.append(game)
+                end_games.append(self.endphase(game))
                 continue
 
             new_game = self.func_list[next_action](self, game.copy())
@@ -243,4 +269,4 @@ class Manager:
 
             state_queue.append((game, next_action + 1))
 
-        return max(end_games, key=lambda game: self.eval(game))
+        return max(end_games, key=lambda game: game.value())
