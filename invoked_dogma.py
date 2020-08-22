@@ -159,6 +159,8 @@ class InvokedDogmaManager(Manager):
         if self.schism in game.hand:
             game.move(game.hand, game.backrow, self.schism)
 
+        # Process Disruptions
+
         if (
             self.schism in game.backrow
             and len(

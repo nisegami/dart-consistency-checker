@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import random
 
 from functools import total_ordering
 from dataclasses import dataclass
 from typing import Iterator, List, Optional, Set, Tuple
-
-from __future__ import annotations
 
 
 @dataclass(order=False)
