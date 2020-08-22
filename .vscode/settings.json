@@ -7,5 +7,6 @@
         "tracker"
     ],
     "python.linting.enabled": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "python.pythonPath": "C:\\Program Files\\Python38\\python.exe"
 }
