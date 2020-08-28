@@ -4,7 +4,7 @@ import random
 
 from functools import total_ordering
 from dataclasses import dataclass
-from typing import Iterator, List, Optional, Set, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Set, Tuple
 
 
 @dataclass(order=False)
@@ -28,6 +28,9 @@ class Card:
 
     def copy(self) -> Card:
         return self
+
+
+DeckList = Iterable[Tuple[Card, int]]
 
 
 @dataclass
@@ -241,13 +244,21 @@ class Game:
 
 
 class Manager:
-    def __init__(self, initial_game: Game) -> None:
+    default_decklist = tuple()
+
+    def __init__(self, decklist: Optional[DeckList] = None):
         self.func_list = [
             getattr(self.__class__, func)
             for func in dir(self.__class__)
             if callable(getattr(self.__class__, func)) and func.startswith("action")
         ]
-        self.initial_game = initial_game
+
+        if decklist:
+            self.decklist = decklist
+        else:
+            self.decklist = self.default_decklist
+
+        self.initial_game = Game.build_from_recipe(self.decklist)
 
     def postprocess(self, game: Game) -> Game:
         return game
@@ -256,8 +267,15 @@ class Manager:
         return game
 
     @classmethod
-    def endphase(cls, end_games: List[Game]) -> str:
-        return ""
+    def percent_with_flags(cls, end_games: List[Game], flags: List[str]) -> str:
+        percentage = sum(
+            1 for game in end_games if all(game.has_flag(flag) for flag in flags)
+        ) / float(len(end_games) / 100)
+        return f"{percentage:.1f}%"
+
+    @classmethod
+    def generate_stats(cls, end_games: List[Game]) -> List[List[str]]:
+        return []
 
     def run(self) -> Game:
         start = self.initial_game.copy()

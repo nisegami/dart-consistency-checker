@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from framework import Disruption, Manager, Card, Game
 
 
@@ -34,7 +34,7 @@ class InvokedDogmaManager(Manager):
     construct = Card("El Shaddoll Construct", 0, "ED")
     omega = Card("Psy-framelord Omega", 0, "ED")
 
-    deck_recipe = (
+    default_decklist = (
         (aleister, 3),
         (invocation, 3),
         (meltdown, 3),
@@ -57,22 +57,17 @@ class InvokedDogmaManager(Manager):
     going_second_cards = (ash, ogre, veiler, imperm, droplet, nibiru)
     backrow = (droplet, called, imperm, punishment)
 
-    initial_game = Game.build_from_recipe(deck_recipe)
-
-    def __init__(self):
-        super().__init__(self.initial_game)
-
     @classmethod
-    def generate_report(_, end_games: List[Game]) -> str:
-        n = len(end_games)
-        parts = [
-            f"% of games with Winda: {len([game for game in end_games if game.has_flag('winda')])/float(n/100)}",
-            f"% of games with Mechaba: {len([game for game in end_games if game.has_flag('mechaba')])/float(n/100)}",
-            f"% of games with Both: {len([game for game in end_games if game.has_flag('winda') and game.has_flag('mechaba')])/float(n/100)}",
-            f"% of games with >=3 disruptions: {len([game for game in end_games if game.has_flag('>=3 disruptions')])/float(n/100)}",
-            f"% of bricks (<3 disruptions and no Winda): {len([game for game in end_games if game.has_flag('brick')])/float(n/100)}",
+    def generate_stats(cls, end_games: List[Game]) -> List[List[str]]:
+        return [
+            ["Winda", cls.percent_with_flags(end_games, ["winda"])],
+            ["Mechaba", cls.percent_with_flags(end_games, ["mechaba"])],
+            ["Both", cls.percent_with_flags(end_games, ["winda", "mechaba"])],
+            [">2 Disruptions", cls.percent_with_flags(end_games, [">2 disruptions"])],
+            ["Bricks (<3 Disruptions and no Winda)", cls.percent_with_flags(
+                end_games, ["brick"]
+            )],
         ]
-        return "\n".join(parts)
 
     @classmethod
     def generate_sankey_data(
@@ -97,7 +92,7 @@ class InvokedDogmaManager(Manager):
             if game.has_flag("winda"):
                 inner_index += 2
 
-            if game.has_flag(">=3 disruptions"):
+            if game.has_flag(">2 disruptions"):
                 inner_index += 1
 
             results[outer_index][inner_index] += 1
@@ -212,7 +207,7 @@ class InvokedDogmaManager(Manager):
             game.disruptions.append(Disruption(repr(self.aleister), 0))
 
         if pure_distruptions >= 3:
-            game.add_flag(">=3 disruptions")
+            game.add_flag(">2 disruptions")
 
         if game.value() < 3 and not game.has_flag("winda"):
             game.add_flag("brick")

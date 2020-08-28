@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from framework import Disruption, Manager, Card, Game
 
 
@@ -41,7 +41,7 @@ class SynchroDogmaManager(Manager):
     savage = Card("Borreload Savage Dragon", 0, "ED")
     herald = Card("Herald of the Arc Light", 0, "ED")
 
-    deck_recipe = (
+    default_decklist = (
         (tuning, 2),
         (jet, 3),
         (o_lion, 2),
@@ -55,7 +55,6 @@ class SynchroDogmaManager(Manager):
         (servant, 3),
         (schism, 1),
         (desires, 3),
-        # (upstart, 1),
         (imperm, 3),
         (ash, 3),
         (called, 3),
@@ -67,23 +66,20 @@ class SynchroDogmaManager(Manager):
     going_second_cards = (ash, ogre, veiler, imperm, droplet, nibiru)
     backrow = (droplet, called, imperm, punishment)
 
-    initial_game = Game.build_from_recipe(deck_recipe)
-
-    def __init__(self):
-        super().__init__(self.initial_game)
-
     @classmethod
-    def generate_report(_, end_games: List[Game]) -> str:
-        n = len(end_games)
-        parts = [
-            f"% of games with Winda: {len([game for game in end_games if game.has_flag('winda')])/float(n/100)}",
-            f"% of games with Herald: {len([game for game in end_games if game.has_flag('herald')])/float(n/100)}",
-            f"% of games with Savage: {len([game for game in end_games if game.has_flag('savage')])/float(n/100)}",
-            f"% of games with >=3 disruptions: {len([game for game in end_games if game.has_flag('>=3 disruptions')])/float(n/100)}",
-            f"% of games with >=3 disruptions and Winda: {len([game for game in end_games if game.has_flag('>=3 disruptions') and game.has_flag('winda')])/float(n/100)}",
-            f"% of bricks (<3 disruptions and no Winda): {len([game for game in end_games if game.has_flag('brick')])/float(n/100)}",
+    def generate_stats(cls, end_games: List[Game]) -> List[List[str]]:
+        return [
+            ["Winda", cls.percent_with_flags(end_games, ["winda"])],
+            ["Herald", cls.percent_with_flags(end_games, ["herald"])],
+            ["Savage", cls.percent_with_flags(end_games, ["savage"])],
+            [">2 Disruptions", cls.percent_with_flags(end_games, [">2 disruptions"])],
+            [">2 Disruptions and Winda", cls.percent_with_flags(
+                end_games, [">2 disruptions", "winda"]
+            )],
+            ["Bricks (<3 Disruptions and no Winda)", cls.percent_with_flags(
+                end_games, ["brick"]
+            )],
         ]
-        return "\n".join(parts)
 
     def postprocess(self, game: Game):
         if self.apkalone in game.grave and game.hopt_available(self.apkalone):
@@ -173,7 +169,7 @@ class SynchroDogmaManager(Manager):
                 game.disruptions.append(Disruption(repr(card), 1))
 
         if pure_distruptions >= 3:
-            game.add_flag(">=3 disruptions")
+            game.add_flag(">2 disruptions")
 
         if game.value() < 3 and not game.has_flag("winda"):
             game.add_flag("brick")
@@ -188,7 +184,7 @@ class SynchroDogmaManager(Manager):
         if self.deskbot in game.hand:
             return self.deskbot
 
-        options = [entry[0] for entry in self.deck_recipe]
+        options = [entry[0] for entry in self.decklist]
         # prefer cards that have been used already
         front = [card for card in options if not game.hopt_available(card, tag=None)]
         back = [card for card in options if game.hopt_available(card, tag=None)]
@@ -252,7 +248,7 @@ class SynchroDogmaManager(Manager):
             return self.schism
         else:
             # we dumped apkalone with maximus
-            options = [entry[0] for entry in self.deck_recipe]
+            options = [entry[0] for entry in self.decklist]
             if len(game.hand) > 1:
                 # keep schism if we can
                 options.remove(self.schism)
@@ -281,7 +277,7 @@ class SynchroDogmaManager(Manager):
                 self.linkuriboh,
                 self.construct,
                 self.apkalone,
-                self.titaniklad
+                self.titaniklad,
             ]
         )
 
